@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: wordpress_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: vxPiR1mz
+      MYSQL_DATABASE: aaesq_main
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: QrLiR1mz02njyeM
+    volumes:
+      - ./volume/mysql/data:/var/lib/mysql
+      - ./volume/mysql/bridge:/home
+      - ./volume/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - wp_network
+    ports:
+      - "3306:3306"
+
+  wordpress:
+    image: wordpress:php7.4-fpm
+    container_name: wordpress_app
+    restart: always
+    environment:
+      DB_HOST: wordpress_db
+      DB_PORT: 3306
+      DB_USER: aaesq
+      DB_PASSWORD: QxkaGxidfp9
+      DB_NAME: aaesq_main
+    volumes:
+      - ./volume/app/main:/var/www/html
+      - ./volume/app/php.ini:/usr/local/etc/php/php.ini
+    depends_on:
+      - db
+    networks:
+      - wp_network
+    ports:
+      - "127.0.0.1:9000:9000"
+
+networks:
+  wp_network:
+    external: true
+    driver: bridge

@@ -5,3 +5,5 @@ Setup your vps for php,mysql,nginx,docker in few minutes
 ## Requirements
 
 - Docker
+- Propagated domain
+- Website files
