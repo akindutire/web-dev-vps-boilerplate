@@ -232,7 +232,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
-      - ./dev/app:/var/www/html
+      - ${BASE_DIR}/dev/app:/var/www/html
     networks:
       - app_network
     ports:
@@ -245,7 +245,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
-      - ./live/app:/var/www/html
+      - ${BASE_DIR}/live/app:/var/www/html
     networks:
       - app_network
     ports:
