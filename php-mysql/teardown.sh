@@ -82,6 +82,27 @@ echo "- Nginx configuration for $PROJECT_DIR"
 echo "- Project directory: $BASE_DIR"
 echo ""
 
+# Ask if user wants to reset UFW and fail2ban
+echo "Do you want to reset UFW and fail2ban configurations?"
+read -p "Reset security configurations? (y/n): " RESET_SECURITY
+if [[ $RESET_SECURITY == [yY] || $RESET_SECURITY == [yY][eE][sS] ]]; then
+    echo "Resetting UFW firewall rules..."
+    ufw reset
+    
+    echo "Resetting fail2ban configuration..."
+    if [ -f "/etc/fail2ban/jail.local" ]; then
+        rm -f "/etc/fail2ban/jail.local"
+    fi
+    
+    if [ -f "/etc/fail2ban/filter.d/ufw-port-scan.conf" ]; then
+        rm -f "/etc/fail2ban/filter.d/ufw-port-scan.conf"
+    fi
+    
+    systemctl restart fail2ban
+    
+    echo "Security configurations have been reset."
+fi
+
 # Ask if user wants to uninstall Docker and Nginx
 echo "Do you want to remove Docker and Nginx as well?"
 read -p "Remove Docker and Nginx? (y/n): " REMOVE_DEPS
