@@ -30,6 +30,56 @@ if ! command -v docker-compose &> /dev/null; then
     chmod +x /usr/local/bin/docker-compose
 fi
 
+# Setup UFW (Uncomplicated Firewall)
+echo "Setting up UFW firewall..."
+apt-get install -y ufw fail2ban
+
+# Install fail2ban for auto-banning
+echo "Configuring fail2ban for auto-banning..."
+cat > /etc/fail2ban/jail.local <<EOF
+[sshd]
+enabled = true
+port = 22
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 5
+bantime = 3600
+
+[ufw-port-scan]
+enabled = true
+filter = ufw-port-scan
+logpath = /var/log/ufw.log
+maxretry = 5
+bantime = 3600
+findtime = 600
+EOF
+
+# Create custom filter for port scanning
+cat > /etc/fail2ban/filter.d/ufw-port-scan.conf <<EOF
+[Definition]
+failregex = UFW BLOCK.* SRC=<HOST>
+ignoreregex =
+EOF
+
+# Configure UFW
+echo "Configuring UFW firewall rules..."
+ufw default deny incoming
+ufw default allow outgoing
+
+# Allow specific ports
+echo "Opening required ports (22, 80, 443, 3306)..."
+ufw allow 22/tcp     # SSH
+ufw allow 80/tcp     # HTTP
+ufw allow 443/tcp    # HTTPS
+ufw allow 3306/tcp   # MySQL
+
+# Enable UFW and restart fail2ban
+echo "Enabling UFW and starting fail2ban..."
+echo "y" | ufw enable
+systemctl restart fail2ban
+
+
+
 # Ask directory to store the project files
 echo ""
 read -p "Enter the project directory name (e.g., myproject): " PROJECT_DIR
