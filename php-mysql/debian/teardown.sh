@@ -3,124 +3,109 @@
 # Exit on error
 set -e
 
-echo "=== PHP & MySQL VPS Teardown Script ==="
-echo "--------------------------------------"
+# === Colors ===
+GREEN="\e[32m"
+YELLOW="\e[33m"
+RED="\e[31m"
+BLUE="\e[34m"
+RESET="\e[0m"
+
+print_section() {
+  echo -e "\n${BLUE}==> $1${RESET}\n"
+}
+
+print_warning() {
+  echo -e "\n${YELLOW}[!] $1${RESET}"
+}
+
+print_success() {
+  echo -e "\n${GREEN}[✔] $1${RESET}"
+}
+
+print_error() {
+  echo -e "\n${RED}[✘] $1${RESET}"
+}
+
+print_info() {
+  echo -e "\n${BLUE}[i] $1${RESET}"
+}
+
+print_section "🧹 PHP & MySQL VPS Teardown Script"
 
 # Check if script is run as root
 if [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root" 
-    exit 1
+  print_error "This script must be run as root"
+  exit 1
 fi
 
 # Ask for project directory name to teardown
-echo ""
-read -p "Enter the project directory name to teardown: " PROJECT_DIR
+print_info "Enter the project directory name to teardown (in /var/www):"
+read -p "> " PROJECT_DIR
 if [ -z "$PROJECT_DIR" ]; then
-    echo "Project directory name cannot be empty"
-    exit 1
+  print_error "Project directory name cannot be empty"
+  exit 1
 fi
 
 # Confirm teardown
-echo ""
-echo "WARNING: This will completely remove the $PROJECT_DIR setup including:"
-echo "- All Docker containers and related volumes"
-echo "- All project files in /var/www/$PROJECT_DIR"
-echo "- Nginx configuration for $PROJECT_DIR"
-echo ""
+print_warning "This will completely remove the $PROJECT_DIR setup including:\n- All Docker containers and related volumes\n- All project files in /var/www/$PROJECT_DIR\n- Nginx configuration for $PROJECT_DIR"
 read -p "Are you sure you want to proceed? (y/n): " CONFIRM
 if [[ $CONFIRM != [yY] && $CONFIRM != [yY][eE][sS] ]]; then
-    echo "Teardown aborted."
-    exit 0
+  print_info "Teardown aborted."
+  exit 0
 fi
 
-# Base directory
 BASE_DIR="/var/www/$PROJECT_DIR"
 
-# Stop and remove Docker containers
+print_section "📦 Stopping Docker Containers"
 if [ -f "$BASE_DIR/docker-compose.yml" ]; then
-    echo "Stopping and removing Docker containers..."
-    cd "$BASE_DIR"
-    docker-compose down
+  cd "$BASE_DIR"
+  docker-compose down || true
 fi
 
-# Remove Docker volumes
-echo "Removing Docker volumes..."
-if docker volume ls | grep -q "${PROJECT_DIR}_app_data"; then
-    docker volume rm "${PROJECT_DIR}_app_data"
-fi
+print_section "🧽 Removing Docker Volumes"
+docker volume ls | grep -q "${PROJECT_DIR}_app_data" && docker volume rm "${PROJECT_DIR}_app_data" || true
+docker volume ls | grep -q "${PROJECT_DIR}_mysql_data" && docker volume rm "${PROJECT_DIR}_mysql_data" || true
 
-if docker volume ls | grep -q "${PROJECT_DIR}_mysql_data"; then
-    docker volume rm "${PROJECT_DIR}_mysql_data"
-fi
+print_section "🗑️ Removing Nginx Configurations"
+rm -f "/etc/nginx/sites-enabled/$PROJECT_DIR" || true
+rm -f "/etc/nginx/sites-available/$PROJECT_DIR" || true
 
-# Remove Nginx configuration
-echo "Removing Nginx configurations..."
-if [ -f "/etc/nginx/sites-enabled/$PROJECT_DIR" ]; then
-    rm -f "/etc/nginx/sites-enabled/$PROJECT_DIR"
-fi
-
-if [ -f "/etc/nginx/sites-available/$PROJECT_DIR" ]; then
-    rm -f "/etc/nginx/sites-available/$PROJECT_DIR"
-fi
-
-# Restart Nginx
-echo "Restarting Nginx..."
+print_info "Restarting Nginx..."
 systemctl restart nginx
 
-# Remove project directories
-echo "Removing project directories..."
-if [ -d "$BASE_DIR" ]; then
-    rm -rf "$BASE_DIR"
-fi
+print_section "🧹 Removing Project Directory"
+rm -rf "$BASE_DIR" || true
 
-echo ""
-echo "=== Teardown Complete ==="
-echo "The following has been removed:"
-echo "- Docker containers for $PROJECT_DIR"
-echo "- Docker volumes: ${PROJECT_DIR}_app_data and ${PROJECT_DIR}_mysql_data"
-echo "- Nginx configuration for $PROJECT_DIR"
-echo "- Project directory: $BASE_DIR"
-echo ""
+print_success "Base resources for '$PROJECT_DIR' have been removed."
 
-# Ask if user wants to reset UFW and fail2ban
-echo "Do you want to reset UFW and fail2ban configurations?"
-read -p "Reset security configurations? (y/n): " RESET_SECURITY
+print_section "🛡️ Optional: Reset Security Configs"
+read -p "Reset UFW and fail2ban configurations? (y/n): " RESET_SECURITY
 if [[ $RESET_SECURITY == [yY] || $RESET_SECURITY == [yY][eE][sS] ]]; then
-    echo "Resetting UFW firewall rules..."
-    ufw reset
-    
-    echo "Resetting fail2ban configuration..."
-    if [ -f "/etc/fail2ban/jail.local" ]; then
-        rm -f "/etc/fail2ban/jail.local"
-    fi
-    
-    if [ -f "/etc/fail2ban/filter.d/ufw-port-scan.conf" ]; then
-        rm -f "/etc/fail2ban/filter.d/ufw-port-scan.conf"
-    fi
-    
-    systemctl restart fail2ban
-    
-    echo "Security configurations have been reset."
+  print_info "Resetting UFW firewall rules..."
+  ufw reset || true
+
+  print_info "Removing custom fail2ban configurations..."
+  rm -f "/etc/fail2ban/jail.local" || true
+  rm -f "/etc/fail2ban/filter.d/ufw-port-scan.conf" || true
+
+  systemctl restart fail2ban || true
+  print_success "Security configurations reset."
 fi
 
-# Ask if user wants to uninstall Docker and Nginx
-echo "Do you want to remove Docker and Nginx as well?"
-read -p "Remove Docker and Nginx? (y/n): " REMOVE_DEPS
+print_section "🧼 Optional: Remove Docker and Nginx"
+read -p "Remove Docker and Nginx from the system? (y/n): " REMOVE_DEPS
 if [[ $REMOVE_DEPS == [yY] || $REMOVE_DEPS == [yY][eE][sS] ]]; then
-    echo "Removing Docker and Nginx..."
-    
-    # Remove Docker
-    apt-get purge -y docker-ce docker-ce-cli containerd.io
-    apt-get autoremove -y
-    rm -rf /var/lib/docker
-    rm -f /usr/local/bin/docker-compose
-    
-    # Remove Nginx
-    apt-get purge -y nginx nginx-common
-    apt-get autoremove -y
-    
-    echo "Docker and Nginx have been removed."
+  print_info "Removing Docker..."
+  apt-get purge -y docker-ce docker-ce-cli containerd.io || true
+  apt-get autoremove -y || true
+  rm -rf /var/lib/docker
+  rm -f /usr/local/bin/docker-compose
+
+  print_info "Removing Nginx..."
+  apt-get purge -y nginx nginx-common || true
+  apt-get autoremove -y || true
+
+  print_success "Docker and Nginx have been removed."
 fi
 
-echo ""
-echo "Teardown process has completed successfully."
+print_success "Teardown process completed successfully."
