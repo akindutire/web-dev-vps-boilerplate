@@ -125,7 +125,7 @@ cat > "/etc/nginx/sites-available/$PROJECT_DIR" <<EOF
 server {
     listen 80;
     server_name dev.$PROJECT_SITE;
-    root $BASE_DIR/dev/app
+    root $BASE_DIR/dev/app;
     
     add_header X-Frame-Options \"SAMEORIGIN\" always; 
     add_header X-Content-Type-Options \"nosniff\" always;
@@ -193,7 +193,7 @@ server {
 server {
     listen 80;
     server_name $PROJECT_SITE;
-    root $BASE_DIR/live/app
+    root $BASE_DIR/live/app;
     
     add_header X-Frame-Options \"SAMEORIGIN\" always; 
     add_header X-Content-Type-Options \"nosniff\" always;
