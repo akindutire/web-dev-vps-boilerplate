@@ -30,6 +30,7 @@ fi
 section "Installing Docker"
 if ! docker compose version &> /dev/null; then
     echo -e "${YELLOW}Docker Compose plugin not found. Installing...${NC}"
+    apt-get remove docker docker-engine docker.io containerd runc
     apt-get update
     apt-get install -y \
         ca-certificates \
@@ -41,6 +42,7 @@ if ! docker compose version &> /dev/null; then
     install -m 0755 -d /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     chmod a+r /etc/apt/keyrings/docker.gpg
+   
 
     echo \
       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
@@ -55,6 +57,11 @@ if ! docker compose version &> /dev/null; then
 else
     echo -e "${GREEN}✔ Docker already installed${NC}"
 fi
+
+#  echo \
+#       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+#       https://download.docker.com/linux/debian bookworm stable" | \
+#       tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 # Setup UFW and Fail2Ban
 section "Installing and Configuring UFW & Fail2Ban"

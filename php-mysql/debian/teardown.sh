@@ -101,6 +101,7 @@ if [[ $REMOVE_DEPS == [yY] || $REMOVE_DEPS == [yY][eE][sS] ]]; then
   apt-get autoremove -y || true
   rm -rf /var/lib/docker
   rm -f /usr/local/bin/docker-compose
+  rm /etc/apt/sources.list.d/docker.list
 
   print_info "Removing Nginx..."
   apt-get purge -y nginx nginx-common || true
