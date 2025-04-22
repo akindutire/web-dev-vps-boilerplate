@@ -117,6 +117,26 @@ server {
     listen 80;
     server_name dev.$PROJECT_SITE;
     root $BASE_DIR/dev/app;
+    
+    # Add all security headers together
+    add_header X-Frame-Options "SAMEORIGIN" always; 
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-only" always;
+    add_header Content-Security-Policy "frame-ancestors 'self'" always;
+    add_header X-Served-By $server_name;
+    add_header X-Request-Host $host;
+    add_header Cache-Control "no-cache" always;
+    add_header Pragma "no-cache" always;
+    # Vary header to prevent proxy caching
+    add_header Vary "*";
+    # If using CloudFlare or similar:
+    add_header CDN-Cache-Control "no-cache";
+    
+    proxy_cache off;
+    proxy_no_cache 1;
+    client_max_body_size 20M;
+    
     index index.php;
     charset utf-8;
     autoindex off;
@@ -145,6 +165,26 @@ server {
     listen 80;
     server_name $PROJECT_SITE;
     root $BASE_DIR/live/app;
+
+    # Add all security headers together
+    add_header X-Frame-Options "SAMEORIGIN" always; 
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-only" always;
+    add_header Content-Security-Policy "frame-ancestors 'self'" always;
+    add_header X-Served-By $server_name;
+    add_header X-Request-Host $host;
+    add_header Cache-Control "no-cache" always;
+    add_header Pragma "no-cache" always;
+    # Vary header to prevent proxy caching
+    add_header Vary "*";
+    # If using CloudFlare or similar:
+    add_header CDN-Cache-Control "no-cache";
+    
+    proxy_cache off;
+    proxy_no_cache 1;
+    client_max_body_size 50M;
+
     index index.php;
     charset utf-8;
     autoindex off;
@@ -183,16 +223,14 @@ EOF
 # Docker Compose
 section "Creating Docker Compose File"
 cat > "$BASE_DIR/docker-compose.yml" <<EOF
-version: '3.8'
-
 services:
   php_dev:
     image: php:8.2-fpm
     container_name: ${PROJECT_DIR}_php_dev
     restart: unless-stopped
-    working_dir: /var/www/html
+    working_dir: ${BASE_DIR}/dev/app
     volumes:
-      - ${BASE_DIR}/dev/app:/var/www/html
+      - ${BASE_DIR}/dev/app:${BASE_DIR}/dev/app
     networks:
       - app_network
     ports:
@@ -202,9 +240,9 @@ services:
     image: php:8.2-fpm
     container_name: ${PROJECT_DIR}_php_live
     restart: unless-stopped
-    working_dir: /var/www/html
+    working_dir: ${BASE_DIR}/live/app
     volumes:
-      - ${BASE_DIR}/live/app:/var/www/html
+      - ${BASE_DIR}/live/app:${BASE_DIR}/live/app
     networks:
       - app_network
     ports:
