@@ -52,8 +52,7 @@ if ! docker compose version &> /dev/null; then
   
     apt-get update
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-    systemctl enable nginx
-    systemctl start nginx
+    systemctl enable docker
 else
     echo -e "${GREEN}✔ Docker already installed${NC}"
 fi
