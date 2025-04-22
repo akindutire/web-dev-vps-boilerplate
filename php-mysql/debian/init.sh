@@ -82,7 +82,7 @@ systemctl restart fail2ban
 
 # Ask directory to store the project files
 echo ""
-read -p "Enter the project directory name (e.g., myproject): " PROJECT_DIR
+read -p "Enter the project directory name (e.g., myproject):, project will be saved in /var/www " PROJECT_DIR
 if [ -z "$PROJECT_DIR" ]; then
     PROJECT_DIR="myproject"
     echo "Using default project name: $PROJECT_DIR"
@@ -98,7 +98,7 @@ mkdir -p "$BASE_DIR/live/app"
 mkdir -p "$BASE_DIR/logs/nginx"
 mkdir -p "$BASE_DIR/data/mysql"
 mkdir -p "$BASE_DIR/data/mysql_bridge"
-touch -p "$BASE_DIR/data/mysql_my.cnf"
+touch "$BASE_DIR/data/mysql_my.cnf"
 
 # Install nginx on host
 echo "Installing Nginx..."
