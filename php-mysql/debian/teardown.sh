@@ -57,9 +57,10 @@ fi
 BASE_DIR="/var/www/$PROJECT_DIR"
 
 print_section "📦 Stopping Docker Containers"
-if [ -f "$BASE_DIR/docker-compose.yml" ]; then
-  cd "$BASE_DIR"
-  docker-compose down || true
+if command -v docker &> /dev/null && [ -f "$BASE_DIR/docker-compose.yml" ]; then   
+    cd "$BASE_DIR"
+    docker compose down || true
+    rm -f /usr/libexec/docker/cli-plugins/docker-compose
 fi
 
 print_section "🧽 Removing Docker Volumes"

@@ -28,26 +28,32 @@ fi
 
 # Ensure Docker is installed
 section "Installing Docker"
-if ! command -v docker &> /dev/null; then
-    echo -e "${YELLOW}Docker not found. Installing Docker...${NC}"
+if ! docker compose version &> /dev/null; then
+    echo -e "${YELLOW}Docker Compose plugin not found. Installing...${NC}"
     apt-get update
-    apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    apt-get install -y \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release
+
+    # Add Docker’s official GPG key
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    chmod a+r /etc/apt/keyrings/docker.gpg
+
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/debian \
+      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+      tee /etc/apt/sources.list.d/docker.list > /dev/null
+  
     apt-get update
-    apt-get install -y docker-ce docker-ce-cli containerd.io
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    systemctl enable nginx
+    systemctl start nginx
 else
     echo -e "${GREEN}✔ Docker already installed${NC}"
-fi
-
-# Install Docker Compose
-section "Installing Docker Compose"
-if ! command -v docker-compose &> /dev/null; then
-    echo -e "${YELLOW}Docker Compose not found. Installing...${NC}"
-    curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-else
-    echo -e "${GREEN}✔ Docker Compose already installed${NC}"
 fi
 
 # Setup UFW and Fail2Ban
@@ -82,11 +88,13 @@ EOF
 # Configure UFW rules
 ufw default deny incoming
 ufw default allow outgoing
+ufw allow OpenSSH
 ufw allow 22/tcp
 ufw allow 80/tcp
 ufw allow 443/tcp
 ufw allow 3306/tcp
 echo "y" | ufw enable
+systemctl enable fail2ban
 systemctl restart fail2ban
 
 # Ask for project directory
@@ -101,7 +109,7 @@ touch "$BASE_DIR/data/mysql_my.cnf"
 # Ask for project site
 section "Project Domain Setup"
 read -p "Enter the project domain (e.g., https://example.com/): " PROJECT_SITE_RAW
-PROJECT_SITE=$(echo "$PROJECT_SITE_RAW" | sed -E 's~https?://~~;s~/.*~~;s~/*$~~')
+PROJECT_SITE=$(echo "$PROJECT_SITE_RAW" | sed -E 's~https?://~~;s~:.*~~;s~/.*~~;s~/*$~~')
 PROJECT_SITE=${PROJECT_SITE:-myproject.com}
 echo -e "${GREEN}✔ Using domain: $PROJECT_SITE${NC}"
 
@@ -109,6 +117,8 @@ echo -e "${GREEN}✔ Using domain: $PROJECT_SITE${NC}"
 section "Installing Nginx"
 apt-get update
 apt-get install -y nginx
+systemctl enable nginx
+systemctl start nginx
 
 # Create Nginx configuration
 section "Creating Nginx Config"
@@ -117,7 +127,7 @@ server {
     listen 80;
     server_name dev.$PROJECT_SITE;
     root $BASE_DIR/dev/app;
-    
+
     # Add all security headers together
     add_header X-Frame-Options "SAMEORIGIN" always; 
     add_header X-Content-Type-Options "nosniff" always;
