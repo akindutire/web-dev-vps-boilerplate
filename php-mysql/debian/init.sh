@@ -300,7 +300,7 @@ chmod -R 755 "$BASE_DIR"
 # Start containers
 section "Starting Docker Containers"
 cd "$BASE_DIR"
-docker-compose up -d
+docker compose up -d
 
 # Final message
 echo -e "\n${GREEN}=== Setup Complete ===${NC}"
