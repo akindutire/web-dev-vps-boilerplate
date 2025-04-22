@@ -140,8 +140,8 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-only" always;
     add_header Content-Security-Policy "frame-ancestors 'self'" always;
-    add_header X-Served-By $server_name;
-    add_header X-Request-Host $host;
+    add_header X-Served-By \"\$hostname\";
+    add_header X-Request-Host \"\$host\";
     add_header Cache-Control "no-cache" always;
     add_header Pragma "no-cache" always;
     # Vary header to prevent proxy caching
@@ -188,8 +188,8 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
     add_header Referrer-Policy "strict-origin-only" always;
     add_header Content-Security-Policy "frame-ancestors 'self'" always;
-    add_header X-Served-By $server_name;
-    add_header X-Request-Host $host;
+    add_header X-Served-By \"\$hostname\";
+    add_header X-Request-Host \"\$host\";
     add_header Cache-Control "no-cache" always;
     add_header Pragma "no-cache" always;
     # Vary header to prevent proxy caching
