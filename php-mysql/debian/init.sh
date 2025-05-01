@@ -245,6 +245,13 @@ services:
     container_name: ${PROJECT_DIR}_php_dev
     restart: unless-stopped
     working_dir: ${BASE_DIR}/dev/app
+    environment:
+      FPM_PM_MAX_CHILDREN=10
+      FPM_PM_START_SERVERS=3
+      FPM_PM_MIN_SPARE_SERVERS=2
+      FPM_PM_MAX_SPARE_SERVERS=4
+      FPM_MAX_REQUESTS=500
+      fpm.pool.security.limit_extensions=".php .phtml .jpg .jpeg .png .gif .pdf"
     volumes:
       - ${BASE_DIR}/dev/app:${BASE_DIR}/dev/app
     networks:
@@ -257,6 +264,13 @@ services:
     container_name: ${PROJECT_DIR}_php_live
     restart: unless-stopped
     working_dir: ${BASE_DIR}/live/app
+    environment:
+      FPM_PM_MAX_CHILDREN=50
+      FPM_PM_START_SERVERS=30
+      FPM_PM_MIN_SPARE_SERVERS=10
+      FPM_PM_MAX_SPARE_SERVERS=20
+      FPM_MAX_REQUESTS=500
+      fpm.pool.security.limit_extensions=".php .phtml .jpg .jpeg .png .gif .pdf"
     volumes:
       - ${BASE_DIR}/live/app:${BASE_DIR}/live/app
     networks:
