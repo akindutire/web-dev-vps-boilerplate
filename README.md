@@ -7,3 +7,7 @@ Setup your vps for php,mysql,nginx,docker in few minutes
 - Docker
 - Propagated domain
 - Website files
+
+## Security warning
+
+Do not forget to change the mysql passwords in the scripts
