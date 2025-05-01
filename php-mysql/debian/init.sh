@@ -119,14 +119,6 @@ PROJECT_SITE=$(echo "$PROJECT_SITE_RAW" | sed -E 's~https?://~~;s~:.*~~;s~/.*~~;
 PROJECT_SITE=${PROJECT_SITE:-myproject.com}
 echo -e "${GREEN}✔ Using domain: $PROJECT_SITE${NC}"
 
-# Install Composer
-section "Installing Composer"
-apt-get update
-apt-get install composer
-composer --version
-echo 'export PATH="$PATH:$HOME/.composer/vendor/bin"' >> ~/.bashrc
-source ~/.bashrc
-
 # Install Nginx
 section "Installing Nginx"
 apt-get update
@@ -285,7 +277,19 @@ services:
       - app_network
     ports:
       - "127.0.0.1:8006:9000"
-
+  composer:
+    image: composer:latest
+    container_name: ${PROJECT_DIR}_composer
+    restart: "no"
+    volumes:
+      - ${BASE_DIR}/dev/app:${BASE_DIR}/dev/app
+      - ${BASE_DIR}/live/app:${BASE_DIR}/live/app
+      - ~/.composer:/tmp
+    working_dir: ${BASE_DIR}
+    command: sleep infinity
+    networks:
+      - app_network
+      
   mysql:
     image: mysql:8.0
     container_name: ${PROJECT_DIR}_mysql
