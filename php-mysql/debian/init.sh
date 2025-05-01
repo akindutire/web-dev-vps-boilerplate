@@ -119,6 +119,14 @@ PROJECT_SITE=$(echo "$PROJECT_SITE_RAW" | sed -E 's~https?://~~;s~:.*~~;s~/.*~~;
 PROJECT_SITE=${PROJECT_SITE:-myproject.com}
 echo -e "${GREEN}✔ Using domain: $PROJECT_SITE${NC}"
 
+# Install Composer
+section "Installing Composer"
+apt-get update
+apt-get install composer
+composer --version
+echo 'export PATH="$PATH:$HOME/.composer/vendor/bin"' >> ~/.bashrc
+source ~/.bashrc
+
 # Install Nginx
 section "Installing Nginx"
 apt-get update
