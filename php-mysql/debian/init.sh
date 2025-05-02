@@ -315,8 +315,20 @@ EOF
 
 # Sample PHP file
 section "Creating Sample PHP File"
-echo "<?php phpinfo(); ?>" > "$BASE_DIR/dev/app/index.php"
-cp "$BASE_DIR/dev/app/index.php" "$BASE_DIR/live/app/index.php"
+
+if [ ! -f "$BASE_DIR/dev/app/index.php" ]; then
+  echo "<?php phpinfo(); ?>" > "$BASE_DIR/dev/app/index.php"
+  echo "Created dev/app/index.php"
+else
+  echo "dev/app/index.php already exists, skipping creation"
+fi
+
+if [ ! -f "$BASE_DIR/live/app/index.php" ]; then
+  cp "$BASE_DIR/dev/app/index.php" "$BASE_DIR/live/app/index.php"
+  echo "Copied to live/app/index.php"
+else
+  echo "live/app/index.php already exists, skipping copy"
+fi
 
 # Set permissions
 section "Setting File Permissions"
