@@ -179,7 +179,7 @@ server {
 
 server {
     listen 80;
-    server_name $PROJECT_SITE;
+    server_name www.$PROJECT_SITE $PROJECT_SITE;
     root $BASE_DIR/live/app;
 
     # Add all security headers together
