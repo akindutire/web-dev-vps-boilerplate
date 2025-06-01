@@ -2,6 +2,7 @@ FROM php:8.2-fpm-alpine
 
 WORKDIR /var/www/
 
+ENV POOL_CONF_FILE www.conf
 # Install system dependencies including supervisor and cron
 RUN apk add --no-cache \
     supervisor \
@@ -60,7 +61,7 @@ RUN echo '[program:php-fpm]' > /etc/supervisor/conf.d/php-fpm.conf && \
     echo 'user=root' >> /etc/supervisor/conf.d/php-fpm.conf && \
     echo 'stdout_logfile=/dev/stdout' >> /etc/supervisor/conf.d/php-fpm.conf && \
     echo 'stderr_logfile=/dev/stderr' >> /etc/supervisor/conf.d/php-fpm.conf
-COPY www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY ${POOL_CONF_FILE} /usr/local/etc/php-fpm.d/www.conf
 
 # Create cron supervisor config
 RUN echo '[program:cron]' > /etc/supervisor/conf.d/cron.conf && \
