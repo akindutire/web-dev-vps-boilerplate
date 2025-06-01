@@ -1,0 +1,86 @@
+FROM php:8.2-fpm-alpine
+
+WORKDIR /var/www/
+
+# Install system dependencies including supervisor and cron
+RUN apk add --no-cache \
+    supervisor \
+    dcron \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    libwebp-dev \
+    libzip-dev \
+    oniguruma-dev \
+    icu-dev
+
+# Configure and install PHP extensions
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    --with-webp
+
+RUN docker-php-ext-install \
+    pcntl \
+    gd \
+    pdo_mysql \
+    zip \
+    intl \
+    mbstring \
+    bcmath
+
+# Create supervisor configuration directory
+RUN mkdir -p /etc/supervisor/conf.d
+
+# Create supervisor main config
+RUN echo '[unix_http_server]' > /etc/supervisord.conf && \
+    echo 'file=/var/run/supervisor.sock' >> /etc/supervisord.conf && \
+    echo '' >> /etc/supervisord.conf && \
+    echo '[supervisord]' >> /etc/supervisord.conf && \
+    echo 'logfile=/var/log/supervisord.log' >> /etc/supervisord.conf && \
+    echo 'pidfile=/var/run/supervisord.pid' >> /etc/supervisord.conf && \
+    echo 'childlogdir=/var/log/supervisor' >> /etc/supervisord.conf && \
+    echo 'nodaemon=true' >> /etc/supervisord.conf && \
+    echo 'user=root' >> /etc/supervisord.conf && \
+    echo '' >> /etc/supervisord.conf && \
+    echo '[rpcinterface:supervisor]' >> /etc/supervisord.conf && \
+    echo 'supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface' >> /etc/supervisord.conf && \
+    echo '' >> /etc/supervisord.conf && \
+    echo '[supervisorctl]' >> /etc/supervisord.conf && \
+    echo 'serverurl=unix:///var/run/supervisor.sock' >> /etc/supervisord.conf && \
+    echo '' >> /etc/supervisord.conf && \
+    echo '[include]' >> /etc/supervisord.conf && \
+    echo 'files = /etc/supervisor/conf.d/*.conf' >> /etc/supervisord.conf
+
+# Create PHP-FPM supervisor config
+RUN echo '[program:php-fpm]' > /etc/supervisor/conf.d/php-fpm.conf && \
+    echo 'command=php-fpm --nodaemonize' >> /etc/supervisor/conf.d/php-fpm.conf && \
+    echo 'autostart=true' >> /etc/supervisor/conf.d/php-fpm.conf && \
+    echo 'autorestart=true' >> /etc/supervisor/conf.d/php-fpm.conf && \
+    echo 'user=root' >> /etc/supervisor/conf.d/php-fpm.conf && \
+    echo 'stdout_logfile=/dev/stdout' >> /etc/supervisor/conf.d/php-fpm.conf && \
+    echo 'stderr_logfile=/dev/stderr' >> /etc/supervisor/conf.d/php-fpm.conf
+
+# Create cron supervisor config
+RUN echo '[program:cron]' > /etc/supervisor/conf.d/cron.conf && \
+    echo 'command=crond -f -l 2' >> /etc/supervisor/conf.d/cron.conf && \
+    echo 'autostart=true' >> /etc/supervisor/conf.d/cron.conf && \
+    echo 'autorestart=true' >> /etc/supervisor/conf.d/cron.conf && \
+    echo 'user=root' >> /etc/supervisor/conf.d/cron.conf && \
+    echo 'stdout_logfile=/var/log/cron.log' >> /etc/supervisor/conf.d/cron.conf && \
+    echo 'stderr_logfile=/var/log/cron-error.log' >> /etc/supervisor/conf.d/cron.conf
+
+
+# Create log directory
+RUN mkdir -p /var/log/supervisor
+
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www && \
+    chmod -R 755 /var/www
+
+# Expose PHP-FPM port
+EXPOSE 9000
+
+# Start supervisor (which will start php-fpm, horizon, and cron)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+#RUN /usr/bin/supervisord -c /etc/supervisord.conf

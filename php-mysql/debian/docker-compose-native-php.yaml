@@ -1,0 +1,75 @@
+services:
+
+  redis:
+    container_name: dev_redis
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - /var/www/dev/data/redis-data:/data
+    networks:
+      - app_network
+  
+  php_dev:
+    build:
+      dockerfile: Dockerfile-PHP
+      context: .
+    container_name: dev_php_dev
+    restart: unless-stopped
+    working_dir: /var/www/dev/
+    environment:
+      PHP_FPM_USER: www-data
+      PHP_FPM_GROUP: www-data
+      FPM_PM_MAX_CHILDREN: 100
+      FPM_PM_START_SERVERS: 6
+      FPM_PM_MIN_SPARE_SERVERS: 4
+      FPM_PM_MAX_SPARE_SERVERS: 8
+      FPM_MAX_REQUESTS: 500
+      fpm.pool.security.limit_extensions: ".php .phtml .jpg .jpeg .png .gif .pdf"
+    volumes:
+      - /var/www/dev/app1:/var/www/dev/app1
+      - /var/www/dev/app12/var/www/dev/app2
+      - /var/www/dev/app3:/var/www/dev/app3
+    networks:
+      - app_network
+    ports:
+      - "127.0.0.1:8005:9000"
+
+  composer:
+    build:
+      context: .
+      dockerfile: Dockerfile-Composer
+    container_name: dev_composer
+    restart: "no"
+    volumes:
+      - /var/www/dev/app1:/var/www/dev/app1
+      - /var/www/dev/app2:/var/www/dev/app2
+      - /var/www/dev/app3:/var/www/dev/app3
+      - ~/.composer:/tmp
+    working_dir: /var/www/dev/
+    command: sleep infinity
+    networks:
+      - app_network
+
+  mysql:
+    image: mysql:8.0
+    container_name: dev_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: anythingsecure001
+      MYSQL_DATABASE: dev_main
+      MYSQL_USER: devnan
+      MYSQL_PASSWORD: anythingsecure001
+    volumes:
+      - /var/www/dev/data/mysql:/var/lib/mysql
+      - /var/www/dev/data/mysql_bridge:/home
+      - /var/www/dev/data/mysql_my.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - app_network
+    ports:
+      - "3306:3306"
+
+networks:
+  app_network:
+    driver: bridge

@@ -1,0 +1,18 @@
+FROM composer:latest
+
+# Install system dependencies for GD (Alpine packages)
+RUN apk add --no-cache \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libpng-dev \
+    libwebp-dev \
+    libxpm-dev
+
+# Configure and install GD extension
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    --with-webp
+
+# Install both extensions
+RUN docker-php-ext-install gd pcntl
