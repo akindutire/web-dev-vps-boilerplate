@@ -51,7 +51,8 @@ RUN echo '[unix_http_server]' > /etc/supervisord.conf && \
     echo 'serverurl=unix:///var/run/supervisor.sock' >> /etc/supervisord.conf && \
     echo '' >> /etc/supervisord.conf && \
     echo '[include]' >> /etc/supervisord.conf && \
-    echo 'files = /etc/supervisor/conf.d/*.conf' >> /etc/supervisord.conf
+    echo 'files = /etc/supervisor/conf.d/*.conf' >> /etc/supervisord.conf \
+    echo '        /etc/supervisor/conf.d/*/*.conf' >> /etc/supervisord.conf
 
 # Create PHP-FPM supervisor config
 RUN echo '[program:php-fpm]' > /etc/supervisor/conf.d/php-fpm.conf && \
