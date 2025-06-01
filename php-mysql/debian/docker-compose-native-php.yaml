@@ -21,12 +21,6 @@ services:
     environment:
       PHP_FPM_USER: www-data
       PHP_FPM_GROUP: www-data
-      FPM_PM_MAX_CHILDREN: 100
-      FPM_PM_START_SERVERS: 6
-      FPM_PM_MIN_SPARE_SERVERS: 4
-      FPM_PM_MAX_SPARE_SERVERS: 8
-      FPM_MAX_REQUESTS: 500
-      fpm.pool.security.limit_extensions: ".php .phtml .jpg .jpeg .png .gif .pdf"
     volumes:
       - /var/www/dev/app1:/var/www/dev/app1
       - /var/www/dev/app12/var/www/dev/app2
