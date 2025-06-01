@@ -2,7 +2,7 @@ FROM php:8.2-fpm-alpine
 
 WORKDIR /var/www/
 
-ENV POOL_CONF_FILE www.conf
+ARG POOL_CONF_FILE=www.conf
 # Install system dependencies including supervisor and cron
 RUN apk add --no-cache \
     supervisor \
