@@ -27,6 +27,9 @@ services:
       - /var/www/dev/app1:/var/www/dev/app1
       - /var/www/dev/app12/var/www/dev/app2
       - /var/www/dev/app3:/var/www/dev/app3
+      - /var/www/dev/app3/supervisor:/etc/supervisor/conf.d/app3
+
+      - /var/www/dev/cron:/etc/cron.d/
     networks:
       - app_network
     ports:
