@@ -83,4 +83,3 @@ EXPOSE 9000
 
 # Start supervisor (which will start php-fpm, horizon, and cron)
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
-#RUN /usr/bin/supervisord -c /etc/supervisord.conf

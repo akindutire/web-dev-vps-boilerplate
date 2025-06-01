@@ -7,9 +7,9 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: vxPiR1mz
-      MYSQL_DATABASE: aaesq_main
+      MYSQL_DATABASE: vp_main
       MYSQL_USER: wordpress
-      MYSQL_PASSWORD: QrLiR1mz02njyeM
+      MYSQL_PASSWORD: Ijlwdkjs
     volumes:
       - ./volume/mysql/data:/var/lib/mysql
       - ./volume/mysql/bridge:/home
@@ -27,8 +27,8 @@ services:
       DB_HOST: wordpress_db
       DB_PORT: 3306
       DB_USER: aaesq
-      DB_PASSWORD: QxkaGxidfp9
-      DB_NAME: aaesq_main
+      DB_PASSWORD: Ijlwdkjs
+      DB_NAME: q_main
     volumes:
       - ./volume/app/main:/var/www/html
       - ./volume/app/php.ini:/usr/local/etc/php/php.ini
